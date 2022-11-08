@@ -1,0 +1,917 @@
+<html>
+    <head>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/echarts@5.3.2/dist/echarts.js"></script>
+        <!-- 新 Bootstrap 核心 CSS 文件 -->
+        <link href="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+        <!--jQuery 是一个高效、精简并且功能丰富的 JavaScript 工具库。它提供的 API 易于使用且兼容众多浏览器，这让诸如 HTML 文档遍历和操作、事件处理、动画和 Ajax 操作更加简单。-->
+        <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.js"></script>
+        <!-- 最新的 Bootstrap 核心 JavaScript 文件 -->
+        <script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+        <!--review, DB: DataCollection_FE_BE_OPC-->
+        <script type="text/javascript" src="data02.json"></script>
+        <script type="text/javascript" src="dataLine02.json"></script>
+
+        <script type="text/javascript">
+            var data = [];
+            var dataLine = [];
+            var distinctDept = [];
+            var distinctStatus = [];
+            var distinctRisk = [];
+            var distinctWeek = [];
+            var arrayLegendSelected = [];
+
+            function DefineOption(){
+                var option={
+                    title:{
+                    left:"40%",
+                    text:"Count Capacitor Defect group by Lot Number & Supplier",
+                    },
+
+                    grid:
+                    [
+                        //here show the basic xAxis Dimension-Week/Month
+                        //here show the bars- Dept X Status
+                        {
+                            left:"7%",bottom:"17%",width:"80%",height:"70%",
+                        },
+
+                        //here show the line
+                        {
+                            left:"7%",top:"7%",width:"80%",height:"30%",
+                        },
+
+                        //show another xAxis Dimension Labels-Dept
+                        {
+                            left:"7%",bottom:"17%",width:"80%",height:"70%",
+                        },
+
+                        //show another xAxis Dimension Labels-Status
+                        {
+                            left:"7%",bottom:"17%",width:"80%",height:"70%",
+                        },
+                    ],
+
+                    xAxis:
+                    [
+                        //here show the basic xAxis Dimension-Week/Month
+                        {
+                            gridIndex:0,
+                            type:"category",
+                            axisLabel:{
+                                interval:0,
+                                rotate:0,
+                                fontWeight:"bold",
+                                fontSize:17,
+                                //distance from axis line
+                                margin:77,
+                            },
+
+                            axisTick:{
+                                length:77,
+                            },
+                        },
+                        {
+                            gridIndex:1,
+                            type:"category",
+                            show:false,
+                        },
+
+                        //show another xAxis Dimension-Dept
+                        {
+                            gridIndex:2,
+                            type:"category",
+                            axisLabel:{
+                                interval:0,
+                                rotate:90,
+                                //distance from axis line
+                                margin:37,
+                            },
+
+                            axisTick:{
+                                length:37,
+                            },
+                            //show:false,
+                        },
+
+                        //show another xAxis Dimension-Status
+                        {
+                            gridIndex:3,
+                            type:"category",
+                            axisLabel:{
+                                interval:0,
+                                rotate:90,
+                            },
+                            //show:false,
+                        },
+                    ],
+
+                    yAxis:
+                    [
+                        //here show the basic yAxis Dimension-Week/Month
+                        {
+                            gridIndex:0,
+                            //name:"y1",
+                            type:"value",
+                        },
+                        {
+                            gridIndex:1,
+                            //name:"y2",
+                            type:"value",
+                            min:0,
+                            max:1,
+                            show:false,
+                        },
+
+                        //to show another xAxis Dimension-Dept, must define yAxis in pairs
+                        {
+                            gridIndex:2,
+                            //name:"y1",
+                            type:"value",
+                            show:false,
+                        },
+
+                        //to show another xAxis Dimension-Status, must define yAxis in pairs
+                        {
+                            gridIndex:3,
+                            //name:"y1",
+                            type:"value",
+                            show:false,
+                        },
+                    ],
+
+                    dataset:[],
+
+                    legend: [
+                        //here is the way we set up legends data automatically
+                        //{
+                        //    type:"scroll",
+                        //    orient:"vertical",
+                        //    right:"0%",
+                        //    bottom: "0%",
+                        //    formatter: function (name) {
+                        //        //distinctRisk.forEach(function (itemValueRisk, itemKeyRisk) {
+                        //        //    if (name.includes(itemValueRisk)) {
+                        //        //        return itemValueRisk;
+                        //        //    }
+                        //        //    else {
+                        //        //        return name;
+                        //        //    }
+                        //        //});
+                        //        if (name.includes("High")) {
+                        //            return "High";
+                        //        }
+                        //        if (name.includes("Medium")) {
+                        //            return "Medium";
+                        //        }
+                        //        if (name.includes("Med")) {
+                        //            return "Med";
+                        //        }
+                        //        if (name.includes("Middle")) {
+                        //            return "Middle";
+                        //        }
+                        //        if (name.includes("Low")) {
+                        //            return "Low";
+                        //        }
+                        //        return name;
+                        //    },
+                        //    show: false,
+                        //},
+
+                        //here is the way we set up legends manually
+                        {
+                            type:"plain",
+                            orient:"vertical",
+                            right:"7%",
+                            bottom: "27%",
+
+                            //here use data Array to show the legends you wanna list to user
+                            //vrey important- you could define an empty series to add one legend
+                            //but the legend color should be set by itemStyle.color when you defined the series
+                            data: [
+                                //{
+                                //    //very important- first defined an empty series, then use its name here
+                                //    name: "High",
+                                //    icon: "roundRect",
+                                //    //itemStyle: {
+                                //    //    color: "#fac858",
+                                //    //},
+                                //    //selected: arrayLegendSelectedHigh,
+                                //},
+                                //{
+                                //    name: "Medium",
+                                //    icon: "roundRect",
+                                //    //itemStyle: {
+                                //    //    color: "#91cc75",
+                                //    //},
+                                //},
+                                //{
+                                //    name: "Med",
+                                //    icon: "roundRect",
+                                //    //itemStyle: {
+                                //    //    color: "#91cc75",
+                                //    //},
+                                //},
+                                //{
+                                //    name: "Middle",
+                                //    icon: "roundRect",
+                                //    //itemStyle: {
+                                //    //    color: "#91cc75",
+                                //    //},
+                                //},
+                                //{
+                                //    name: "Low",
+                                //    icon: "roundRect",
+                                //    //itemStyle: {
+                                //    //    color: "#5470c6",
+                                //    //},
+                                //},
+                                //{
+                                //    name: "DonePercent",
+                                //    icon: "line",
+                                //    //itemStyle: {
+                                //    //    color: "#5470c6",
+                                //    //},
+                                //},
+                            ],
+                            show: true,
+                        }
+                    ],
+
+                    tooltip:{
+                    },
+
+                    series:[],
+
+                    dataZoom:{
+                        type:"slider",
+                        bottom:"0%",
+                    },
+
+                    graphic: [],
+                };
+
+                return option;
+            }
+
+            function LoadDistinctValues(barDataTable, columnName)
+            {
+                var distinctList=new Set();
+
+                for(i=0;i<barDataTable.length;i++)
+                {
+                    //distincList.add(barDataTable[i]["'"+columnName+"'"]);
+                    distinctList.add(barDataTable[i][columnName]);
+                }
+
+                return distinctList;
+            }
+
+            function LoadSeriesForOption(barDataTable, lineDataTable, option){
+                //bars
+                //#region old way-distinctDept X distinctStatus X distinctRisk
+                var i=2;
+                distinctDept.forEach(function(itemValue,itemKey){
+                    distinctStatus.forEach(function(itemValueStatus, itemKeyStatus){
+                        distinctRisk.forEach(function(itemValueRisk,itemKeyRisk){
+                            var barItem={
+                                name:itemValue + "_" + itemValueStatus + "_" + itemValueRisk,
+                                type:"bar",
+
+                                //very important-set bar charts output channel
+                                stack:itemValue + "_" + itemValueStatus,
+
+                                label:{show:true,},
+                                xAxisIndex:0,
+                                yAxisIndex:0,
+                                datasetIndex:i++,//3,
+                                encode:{
+                                    x:"Week",
+                                    y:"StatusCount",
+                                    //tooltip:["SupplierName","MaterialCode","SupplierBatch","Defect","Yield"],
+                                    //tooltip:dataForCountCapacitorDefectByLotNumberSupplierName["SupplierName","MaterialCode","SupplierBatch","Defect","Yield"],
+                                },
+
+                                //colorBy:"data", 
+                                //['#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de', '#3ba272', '#fc8452', '#9a60b4', '#ea7ccc']
+                                itemStyle:{
+                                    color:itemValueRisk == "Low" ? "#5470c6" : itemValueRisk == "Medium" || itemValueRisk == "Med" || itemValueRisk == "Middle" ? "#91cc75" : "#fac858",
+                                },
+                                //very important- here is the constant to align the bars between the axisTicks
+                                barWidth: distinctDept.size == 1 ? "40.17%" : distinctDept.size == 2 ? "20.17%" : distinctDept.size == 3 ? "14.17%" : distinctDept.size == 4 ? "10.17%" : distinctDept.size == 5 ? "8.17%" : distinctDept.size == 6 ? "7.07%" : distinctDept.size == 7 ? "5.97%" : "5.17%",
+                            };
+                            option.series.push(barItem);
+
+                            //here divided barItem.name into Risk Groups
+                            //later use Chart Event-"legendselectchanged" to identify Risk Legend Group
+                            //later use Chart Dispatch Action-legendToggleSelect to select/unselect bars of Risk Legend Group
+
+                            //#region old way
+                            //if (barItem.name.includes("High")) {
+                            //    //arrayLegendSelectedHigh[barItem.name] = false;
+                            //    arrayLegendSelectedHigh.push(barItem.name);
+                            //}
+                            //if (barItem.name.includes("Low")) {
+                            //    //arrayLegendSelectedHigh[barItem.name] = false;
+                            //    arrayLegendSelectedLow.push(barItem.name);
+                            //}
+                            //if (barItem.name.includes("Medium")) {
+                            //    //arrayLegendSelectedHigh[barItem.name] = false;
+                            //    arrayLegendSelectedMedium.push(barItem.name);
+                            //}
+                            //if (!barItem.name.includes("Medium") && barItem.name.includes("Med")) {
+                            //    //arrayLegendSelectedHigh[barItem.name] = false;
+                            //    arrayLegendSelectedMed.push(barItem.name);
+                            //}
+                            //if (barItem.name.includes("Middle")) {
+                            //    //arrayLegendSelectedHigh[barItem.name] = false;
+                            //    arrayLegendSelectedMiddle.push(barItem.name);
+                            //}
+                            //#endregion
+
+                            //#region new way
+                            arrayLegendSelected.push({ Risk: itemValueRisk, BarName: barItem.name });
+                            //#endregion
+                        });
+                    });
+                });
+                //#endregion
+                
+                //line
+                //#region
+                var lineItem={
+                    name:"DonePercent",
+                    type:"line",
+                    smooth:true,
+                    xAxisIndex:1,
+                    yAxisIndex:1,
+                    datasetIndex:0,//1,
+                    //data:CountMaxYieldByLotNumber(groupByTable),
+                    label:{
+                        show: true,
+                        formatter:function (params){
+                            //return (params.data["Yield"]-200).toFixed(2)+"%";
+                            //return (params.data["Yield"]).toFixed(2)+"%";
+                            //return Number.parseFloat(params.data.DonePercent * 100).toFixed(2) + "%";
+
+                            //very important- IE doesn't support Number.parseFloat
+                            return Number(params.data.DonePercent * 100).toFixed(2) + "%";
+                        },
+                    },
+                    encode:{
+                        x:"WeekAndDept",
+                        y:"DonePercent",
+                        //y:"StdevYield",
+                    },
+                    //data:lineData,
+
+                    tooltip:{
+                        formatter:function(params){
+                            //very important, the column names
+                            //result+=params.dimensionNames;
+                            //result+=params.dataIndex;
+                            //result+=params.componentType; --series
+                            //result+=params.seriesType;
+                            //result+=params.seriesIndex;
+
+                            var result="";
+                            result+=params.data.WeekAndDept+"  ";
+                            result+=Number.parseFloat(params.data.DonePercent * 100).toFixed(2) + "%";
+                            
+                            return result;
+                        },
+                    },
+                };
+
+                option.series.push(lineItem);
+                //option.xAxis[1].data=xAxisData;
+                //#endregion
+
+                //add empty Series for Risk Legend Groups
+                //later use data Array to show the legends you wanna list to user
+                //vrey important- you could define an empty series to add one legend
+                //but the legend color should be set by itemStyle.color when you defined the series
+                distinctRisk.forEach(function (itemValueRisk, itemKeyRisk) {
+                    var lineItem={
+                        name:itemValueRisk,
+                        type:"line",
+                        smooth:true,
+                        xAxisIndex:1,
+                        yAxisIndex:1,
+                        //datasetIndex:0,//1,
+                        data: [],
+                        //label:{
+                        //    show: true,
+                        //    formatter:function (params){
+                        //        //return (params.data["Yield"]-200).toFixed(2)+"%";
+                        //        //return (params.data["Yield"]).toFixed(2)+"%";
+                        //        return Number.parseFloat(params.data.DonePercent * 100).toFixed(2) + "%";
+                        //    },
+                        //},
+                        //encode:{
+                        //    x:"WeekAndDept",
+                        //    y:"DonePercent",
+                        //    //y:"StdevYield",
+                        //},
+                        ////data:lineData,
+
+                        //tooltip:{
+                        //    formatter:function(params){
+                        //        //very important, the column names
+                        //        //result+=params.dimensionNames;
+                        //        //result+=params.dataIndex;
+                        //        //result+=params.componentType; --series
+                        //        //result+=params.seriesType;
+                        //        //result+=params.seriesIndex;
+
+                        //        var result="";
+                        //        result+=params.data.WeekAndDept+"  ";
+                        //        result+=Number.parseFloat(params.data.DonePercent * 100).toFixed(2) + "%";
+                            
+                        //        return result;
+                        //    },
+                        //},
+
+                        //colorBy:"data", 
+                        //['#5470c6', '#91cc75', '#fac858', '#ee6666', '#73c0de', '#3ba272', '#fc8452', '#9a60b4', '#ea7ccc']
+                        itemStyle:{
+                            color:itemValueRisk == "Low" ? "#5470c6" : itemValueRisk == "Medium" || itemValueRisk == "Med" || itemValueRisk == "Middle" ? "#91cc75" : "#fac858",
+                        },
+
+                        show: false,
+                    };
+
+                    option.series.push(lineItem);
+                });
+            }
+
+            function LoadDataSetForOption(barDataTable, lineDataTable, option)
+            {
+                //DataTable for line chart
+                var datasetItem0={
+                    dimensions:["Week","Dept","Open","Done","WeekAndDept","DonePercent"],
+                    source:lineDataTable,
+                };
+                option.dataset.push(datasetItem0);
+
+                //DataTable for bar chart
+                var datasetItem1={
+                    dimensions:["Week","Dept","Status","Risk","StatusCount"],
+                    source:barDataTable,
+                };
+                option.dataset.push(datasetItem1);
+
+                //add DataSet Transform from DISTINCT Dept List
+                //#region
+                distinctDept.forEach(function(itemValue, itemKey){
+                    //add  linked transform from DISTINCT Status List
+                    distinctStatus.forEach(function(itemValueStatus,itemKeyStatus){
+                        //add  linked transform from DISTINCT Risk List
+                        distinctRisk.forEach(function(itemValueRisk,itemKeyRisk){
+                            var dataTransform = {
+
+                                //very important
+                                fromDatasetIndex:1,
+
+                                transform:
+                                [
+                                    {
+                                        type:"filter",
+                                        config:{
+                                            dimension:"Dept",
+                                            value:itemValue,
+                                        },
+                                    },
+                                    {
+                                        type:"filter",
+                                        config:{
+                                            dimension:"Status",
+                                            value:itemValueStatus,
+                                        },
+                                    },
+                                    {
+                                        type:"filter",
+                                        config:{
+                                            dimension:"Risk",
+                                            value:itemValueRisk,
+                                        },
+                                    },
+                                ],                     
+                            };
+
+                            option.dataset.push(dataTransform);                   
+                        });
+                    });
+                });
+                //#endregion
+            }
+
+            function AddOneMoreGroupDimensionToxAxis(arrayFilterValues, option, xAxisIndex, xAxisInterval)
+            {
+                var xIndex=option.xAxis.length;
+                //if(xIndex !=null && xIndex>0)
+                if(xAxisIndex <= xIndex-1)
+                {
+                    option.xAxis[xAxisIndex].data=arrayFilterValues;
+                    option.xAxis[xAxisIndex].axisLabel.interval=xAxisInterval;
+                }
+            }
+
+            function FisherDraw()
+            {
+                var startDate = $("#txtStartDate").val();   //$("#startDate").val();
+                var endDate = $("#txtEndDate").val();          //$("#endDate").val();
+
+                //var department = $("#selDepartment").val();
+                //this function return full value list if user choose all select options, "ALL"-Select all options
+                //GetMultiSelectedItemsSqlAllItemQuery("selDepartment", "hfDepartment");
+                var department = $("#hfDepartment").val();
+
+                var type = $("#selType").val();
+
+                var param = { Param4: startDate, Param5: endDate, Param1: department, Param2: type };
+
+                //if (CheckUserInput(param)) {
+                    //$("#loadingModal").show();
+
+                    // if (param.Param2 == "Weekly") {
+                    //     myOption.xAxis[0].name = "Status/Department/Week";
+                    // }
+                    // if (param.Param2 == "Monthly") {
+                    //     myOption.xAxis[0].name = "Status/Department/Month";
+                    // }
+
+                    //$.post("/api/CCAOIReport/LoadOPCFunctionStatus", param, function (result) {
+                        var result=[];
+                        result["barsTable"]=data02;
+                        result["lineTable"]=dataLine02;
+
+                        if (result != null && result.barsTable.length > 0) {
+                            if (data.length > 0) {
+                                data = [];
+                                dataLine = [];
+                                distinctWeek = [];
+                                distinctDept = [];
+                                distinctStatus = [];
+                                distinctRisk = [];
+                                arrayLegendSelected = [];
+
+                                myOption.dataset = [];
+                                myOption.series = [];
+                            }
+                            myOption.graphic = [];
+
+                            data = result.barsTable;
+                            dataLine = result.lineTable;
+                            distinctDept = LoadDistinctValues(data, "Dept");
+                            distinctStatus = LoadDistinctValues(data, "Status");
+                            distinctRisk = LoadDistinctValues(data, "Risk");
+                            distinctWeek = LoadDistinctValues(data, "Week");
+
+                            LoadDataSetForOption(data, dataLine, myOption);
+                            LoadSeriesForOption(data, dataLine, myOption);
+
+                            //option.xAxis[i].data only accept an Array
+                            //show Dept Dimension in xAxis
+                            var arrayFilters = new Array();
+                            distinctWeek.forEach(function (itemValueWeek, itemKeyWeek) {
+                                distinctDept.forEach(function (itemValue, itemKey) {
+                                    arrayFilters.push(itemValue);
+                                });
+                            });
+
+                            AddOneMoreGroupDimensionToxAxis(arrayFilters, myOption, 2, 0);
+
+                            //option.xAxis[i].data only accept an Array
+                            //show Status Dimension in xAxis
+                            arrayFilters = [];
+                            distinctWeek.forEach(function (itemValueWeek, itemKeyWeek) {
+                                distinctDept.forEach(function (itemValue, itemKey) {
+                                    distinctStatus.forEach(function (itemValueStatus, itemKeyStatus) {
+                                        arrayFilters.push(itemValueStatus);
+                                    });
+                                });
+                            });
+
+                            AddOneMoreGroupDimensionToxAxis(arrayFilters, myOption, 3, 0);
+
+                            //myOption.title.text = "OPC Function Status";
+                            //myOption.xAxis[0].name = "Status/Department/Week";
+                            //myOption.yAxis[0].name = "OPC Quantity";
+
+                            //#region make the legend list in option
+                            distinctRisk.forEach(function (itemValueRisk, itemKeyRisk) {
+                                var tempLegendDataItem = {
+                                    //very important- first defined an empty series, then use its name here
+                                    name: itemValueRisk,
+                                    icon: "roundRect",
+                                    //itemStyle: {
+                                    //    color: "#fac858",
+                                    //},
+                                    //selected: arrayLegendSelectedHigh,
+                                };
+
+                                myOption.legend[0].data.push(tempLegendDataItem);
+                            });
+
+                            var tempLegendDataItem = {
+                                //very important- first defined an empty series, then use its name here
+                                name: "DonePercent",
+                                icon: "line",
+                                //itemStyle: {
+                                //    color: "#fac858",
+                                //},
+                                //selected: arrayLegendSelectedHigh,
+                            };
+
+                            myOption.legend[0].data.push(tempLegendDataItem);
+                            //#endregion
+
+                            //#region very important- use Chart Event- "legendselectchanged" to identify Risk Legend Group
+                            //myChart.on("legendselectchanged", function (param) {
+                            //    //#region old way
+                            //    //window.alert(param.name + param.selected);
+                            //    //if (param.name == "High") {
+                            //    //    arrayLegendSelectedHigh.forEach(function (itemValue, itemKey) {
+
+                            //    //        //very important- use Chart Dispatch Action- "legendToggleSelect" to select/unselect bars of Risk Legend Group
+                            //    //        myChart.dispatchAction({
+                            //    //            type: "legendToggleSelect",
+                            //    //            name: itemValue,
+                            //    //        });
+                            //    //    });
+                            //    //}
+                            //    //if (param.name == "Low") {
+                            //    //    arrayLegendSelectedLow.forEach(function (itemValue, itemKey) {
+
+                            //    //        //use Chart Dispatch Action-legendToggleSelect to select/unselect bars of Risk Legend Group
+                            //    //        myChart.dispatchAction({
+                            //    //            type: "legendToggleSelect",
+                            //    //            name: itemValue,
+                            //    //        });
+                            //    //    });
+                            //    //}
+                            //    //if (param.name == "Medium") {
+                            //    //    arrayLegendSelectedMedium.forEach(function (itemValue, itemKey) {
+
+                            //    //        //use Chart Dispatch Action-legendToggleSelect to select/unselect bars of Risk Legend Group
+                            //    //        myChart.dispatchAction({
+                            //    //            type: "legendToggleSelect",
+                            //    //            name: itemValue,
+                            //    //        });
+                            //    //    });
+                            //    //}
+                            //    //if (param.name == "Med") {
+                            //    //    arrayLegendSelectedMed.forEach(function (itemValue, itemKey) {
+
+                            //    //        //use Chart Dispatch Action-legendToggleSelect to select/unselect bars of Risk Legend Group
+                            //    //        myChart.dispatchAction({
+                            //    //            type: "legendToggleSelect",
+                            //    //            name: itemValue,
+                            //    //        });
+                            //    //    });
+                            //    //}
+                            //    //if (param.name == "Middle") {
+                            //    //    arrayLegendSelectedMiddle.forEach(function (itemValue, itemKey) {
+
+                            //    //        //use Chart Dispatch Action-legendToggleSelect to select/unselect bars of Risk Legend Group
+                            //    //        myChart.dispatchAction({
+                            //    //            type: "legendToggleSelect",
+                            //    //            name: itemValue,
+                            //    //        });
+                            //    //    });
+                            //    //}
+                            //    //#endregion
+
+                            //    //#region new way
+                            //    var tempArrayRiskLegendSelected = arrayLegendSelected.filter(function (item) {
+                            //        //if (item.Risk == itemValueRisk) {
+                            //        if (item.Risk == param.name) {
+                            //            return item;
+                            //        }
+                            //    });
+                            //    tempArrayRiskLegendSelected.forEach(function (itemValue, itemKey) {
+                            //        //very important- use Chart Dispatch Action- "legendToggleSelect" to select/unselect bars of Risk Legend Group
+                            //        myChart.dispatchAction({
+                            //            type: "legendToggleSelect",
+                            //            name: itemValue.BarName,
+                            //        });
+                            //    });                          
+                            //    //#endregion
+                            //});
+                            //#endregion
+
+                            //myChart.setOption(myOption, true);
+
+                            //$("#loadingModal").hide();
+                        }
+                        else {
+                            data = [];
+                            dataLine = [];
+                            distinctWeek = [];
+                            distinctDept = [];
+                            distinctStatus = [];
+                            distinctRisk = [];
+                            arrayLegendSelected = [];
+
+                            myOption.dataset = [];
+                            myOption.series = [];
+                            //myOption.xAxis[0].data = [];
+                            myOption.xAxis[2].data = [];
+                            myOption.xAxis[3].data = [];
+
+                            AddGraphicForNoData(myOption);
+                        }
+
+                        myChart.setOption(myOption, true);
+
+                        //$("#loadingModal").hide();
+                    //});
+                //}     
+            }
+
+            function Bindlegendselectchanged(echartsChart) {
+                //#region very important- use Chart Event- "legendselectchanged" to identify Risk Legend Group
+                echartsChart.on("legendselectchanged", function (param) {
+                    //#region old way
+                    //window.alert(param.name + param.selected);
+                    //if (param.name == "High") {
+                    //    arrayLegendSelectedHigh.forEach(function (itemValue, itemKey) {
+
+                    //        //very important- use Chart Dispatch Action- "legendToggleSelect" to select/unselect bars of Risk Legend Group
+                    //        myChart.dispatchAction({
+                    //            type: "legendToggleSelect",
+                    //            name: itemValue,
+                    //        });
+                    //    });
+                    //}
+                    //if (param.name == "Low") {
+                    //    arrayLegendSelectedLow.forEach(function (itemValue, itemKey) {
+
+                    //        //use Chart Dispatch Action-legendToggleSelect to select/unselect bars of Risk Legend Group
+                    //        myChart.dispatchAction({
+                    //            type: "legendToggleSelect",
+                    //            name: itemValue,
+                    //        });
+                    //    });
+                    //}
+                    //if (param.name == "Medium") {
+                    //    arrayLegendSelectedMedium.forEach(function (itemValue, itemKey) {
+
+                    //        //use Chart Dispatch Action-legendToggleSelect to select/unselect bars of Risk Legend Group
+                    //        myChart.dispatchAction({
+                    //            type: "legendToggleSelect",
+                    //            name: itemValue,
+                    //        });
+                    //    });
+                    //}
+                    //if (param.name == "Med") {
+                    //    arrayLegendSelectedMed.forEach(function (itemValue, itemKey) {
+
+                    //        //use Chart Dispatch Action-legendToggleSelect to select/unselect bars of Risk Legend Group
+                    //        myChart.dispatchAction({
+                    //            type: "legendToggleSelect",
+                    //            name: itemValue,
+                    //        });
+                    //    });
+                    //}
+                    //if (param.name == "Middle") {
+                    //    arrayLegendSelectedMiddle.forEach(function (itemValue, itemKey) {
+
+                    //        //use Chart Dispatch Action-legendToggleSelect to select/unselect bars of Risk Legend Group
+                    //        myChart.dispatchAction({
+                    //            type: "legendToggleSelect",
+                    //            name: itemValue,
+                    //        });
+                    //    });
+                    //}
+                    //#endregion
+
+                    //#region new way
+                    var tempArrayRiskLegendSelected = arrayLegendSelected.filter(function (item) {
+                        //if (item.Risk == itemValueRisk) {
+                        if (item.Risk == param.name) {
+                            return item;
+                        }
+                    });
+                    tempArrayRiskLegendSelected.forEach(function (itemValue, itemKey) {
+                        //very important- use Chart Dispatch Action- "legendToggleSelect" to select/unselect bars of Risk Legend Group
+                        myChart.dispatchAction({
+                            type: "legendToggleSelect",
+                            name: itemValue.BarName,
+                        });
+                    });                          
+                    //#endregion
+                });
+                //#endregion
+            }
+
+            function AddGraphicForNoData(echartsOption) {
+                var graphic={
+                    type: "text",     // 类型：文本
+                    left: "center",
+                    top: "middle",
+                    silent: true,     // 不响应事件
+                    invisible: data.length > 0,   // 有数据就隐藏
+                    style: {
+                        fill: "#9d9d9d",
+                        fontWeight: "bold",
+                        text: "no data",       //"暂无数据",
+                        fontFamily: "Microsoft YaHei",
+                        fontSize: "25px"
+                    },
+                }
+
+                echartsOption.graphic.push(graphic);
+            }
+        </script>
+    </head>
+    <body>
+        <br/>
+        <br/>
+        <br/>
+        <div class="col-md-1"></div>
+
+        <div class="input-group input-group-sm col-md-10">
+        <label>Start Date&nbsp;&nbsp;</label>
+        <input type="date" class="input-sm">
+        <label>&nbsp;&nbsp;End Date&nbsp;&nbsp;</label>
+        <input type="date" class="input-sm">
+        <label>&nbsp;&nbsp;Department&nbsp;&nbsp;</label>
+        <select>
+            <option></option>
+            <option>Axxxxxx</option>
+            <option>Exxxxxx</option>
+            <option>Lxxxxxx</option>
+        </select>
+        <label>&nbsp;&nbsp;Type&nbsp;&nbsp;</label>
+        <select>
+            <option>Weekly</option>
+            <option>Monthly</option>
+        </select>
+        <!--
+            <label>&nbsp;&nbsp;Machine&nbsp;&nbsp;</label>
+            <select>
+                <option>CCY101</option>
+                <option>CCY103</option>
+                <option>CCY106</option>
+            </select>
+            <label>&nbsp;&nbsp;Material PN&nbsp;&nbsp;</label>
+            <select>
+                <option>301098</option>
+                <option>302608</option>
+                <option>301103</option>
+            </select>
+            <label>&nbsp;&nbsp;Lot Number&nbsp;&nbsp;</label>
+            <input type="text" placeholder="split with ,">
+        -->
+        &nbsp;&nbsp;<button type="button" class="btn btn-sm btn-primary" onclick="FisherDraw()">Search</button>
+        &nbsp;&nbsp;<button type="button" class="btn btn-sm btn-primary">Export</button>
+        </div>
+
+        <div class="col-md-1"></div>
+        <br/>
+        <br/>
+        <br/>
+        <div id="divDemo" style="width: 1700px;height: 700px;"></div>
+
+        <script type="text/javascript">
+            //very important- this way can show #loadingModal without onclick Event?
+            // $(function () {
+            //     $("#loadingModal").show();
+    
+            //     $.post("/api/CCAOIReport/LoadOPCFunctionDepartments", null, function (result) {
+            //         if (result != null) {
+            //             $("#selDepartment").empty();
+            //             //$("#selDepartment").append("<option></option>");
+            //             result.forEach(function (itemValue, itemKey) {
+            //                 $("#selDepartment").append("<option value='" + itemValue.Dept + "'>" + itemValue.Dept + "</option>");
+            //             });
+    
+            //             //formatted my html Select
+            //             //BuildMultiSelect("ddlProduct", 150, true, "| ");
+            //             BuildMultiSelect("selDepartment", 150, true, "| ");
+    
+            //             $("#loadingModal").hide();
+            //         }
+            //     });
+            // });
+    
+            var myChart=echarts.init(document.getElementById("divDemo"));
+            var myOption = DefineOption();
+            myOption.title.text = "Oxxxxxx Function Status";
+            myOption.yAxis[0].name = "Oxxxxxx Quantity";
+    
+            //very important- U must bind Event Listener to one Chart not to one Option
+            //#region bug details
+            //and do not bind them in the post query codes section, that would make mutiple Event Listeners on your Chart
+            //mutiple Event Listeners- slowly reaction and would dispatchAction mutiple times for 1 Event
+            //for example: bind "legendselectchanged" in the post query codes section
+            //the first query- 1 legendselectchanged Event Listener- User click Legend- the bars would be shown/unshown in right orders
+            //the second query- 2 legendselectchanged Event Listeners- User click Legend- the bars would always been shown(first unshown, then reshown)
+            //the N query...
+            //#endregion
+            Bindlegendselectchanged(myChart);
+        </script>
+    </body>
+</html>
