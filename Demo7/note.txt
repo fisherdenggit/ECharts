@@ -1,0 +1,7 @@
+Group Bars Charts & Line Chart
+
+U could download the 3 files, then open the Html file to see how ECharts works.
+
+All the data were just for testing. No commercial interest is involved in any of the data.
+
+Fisher Deng.
